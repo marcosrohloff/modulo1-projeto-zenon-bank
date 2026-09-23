@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 public class TransactionIngestor {
 
@@ -22,12 +23,8 @@ public class TransactionIngestor {
 		long inicioTotal = System.nanoTime();
 		try {
 			List<String> lines = Files.readAllLines(file);
-			List<Transaction> transactions = lines.stream()
-					.skip(1)
-					.map(String::trim)
-					.filter(line -> !line.isEmpty())
-					.map(this::parseTransaction)
-					.toList();
+			List<Transaction> transactions = lines.stream().skip(1).map(String::trim).filter(line -> !line.isEmpty())
+					.map(this::parseTransaction).toList();
 
 			long tempoTotal = System.nanoTime() - inicioTotal;
 			double tempoTotalEmSegundos = tempoTotal / 1_000_000_000.0;
@@ -49,13 +46,9 @@ public class TransactionIngestor {
 		TransactionType type = TransactionType.valueOf(chunks[1].trim().toUpperCase(Locale.ROOT));
 		BigDecimal amount = new BigDecimal(chunks[2].trim());
 
-		var origin = new TransactionCustomer(
-				chunks[3].trim(),
-				new BigDecimal(chunks[4].trim()),
+		var origin = new TransactionCustomer(chunks[3].trim(), new BigDecimal(chunks[4].trim()),
 				new BigDecimal(chunks[5].trim()));
-		var recipient = new TransactionCustomer(
-				chunks[6].trim(),
-				new BigDecimal(chunks[7].trim()),
+		var recipient = new TransactionCustomer(chunks[6].trim(), new BigDecimal(chunks[7].trim()),
 				new BigDecimal(chunks[8].trim()));
 
 		boolean isFraud = parseBooleanColumn(chunks[9]);
@@ -70,5 +63,49 @@ public class TransactionIngestor {
 			return "1".equals(normalized);
 		}
 		throw new IllegalArgumentException("Valor booleano inválido: " + value);
+	}
+	
+
+	public List<Transaction> read2(String fileName) {
+
+		Path path = Path.of(fileName);
+		try {
+			List<String> lines = Files.readAllLines(path);
+			return lines.stream()
+					.skip(1)
+					.limit(1000)
+					.map(this::parseTransaction2)
+					.filter(Optional::isPresent)
+					.map(Optional::get)
+					.toList();
+		} catch (IOException e) {
+			throw new IllegalStateException("Erro ao ler o arquivo: " + fileName, e);
+		}
+	}	
+
+	private Optional<Transaction> parseTransaction2(String line) {
+		try {
+			String[] chunks = line.split(",", -1);
+
+			int step = Integer.parseInt(chunks[0]);
+			TransactionType type = TransactionType.valueOf(chunks[1]);
+
+
+			if (chunks[2] == null || chunks[2].trim().isEmpty()) 
+				throw new IllegalArgumentException("Valor de amount nao pode ser null ou vazio: " + chunks[2]);
+			
+			BigDecimal amount = new BigDecimal(chunks[2]);
+
+			var origin = new TransactionCustomer(chunks[3], new BigDecimal(chunks[4]), new BigDecimal(chunks[5]));
+			var recipient = new TransactionCustomer(chunks[6], new BigDecimal(chunks[7]), new BigDecimal(chunks[8]));
+
+			boolean isFraud = "1".equals(chunks[9]);
+			boolean isFlaggedFraud = "1".equals(chunks[10]);
+
+			return Optional.of(new Transaction(step, type, amount, origin, recipient, isFraud, isFlaggedFraud));
+		} catch (Exception e) {
+			System.err.println("Erro ao processar a linha: " + line + " - " + e.getMessage());
+			return Optional.empty();
+		}
 	}
 }

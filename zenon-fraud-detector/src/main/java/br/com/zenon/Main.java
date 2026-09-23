@@ -20,9 +20,9 @@ public class Main {
 
 		System.out.println(transaction1);
 		System.out.println(transaction2);
-
+		
 		System.out.println("-------------------------------------------------------------");
-
+		/*
 		Path transactionsFile = Path.of("data", "arq.csv");
 		if (!Files.exists(transactionsFile)) {
 			throw new IllegalStateException("Arquivo de transações não encontrado: " + transactionsFile.toAbsolutePath());
@@ -33,6 +33,22 @@ public class Main {
 		System.out.println("Transactions read: " + transactions.size());
 
 		transactions.stream().limit(10).forEach(System.out::println);
+		
+		System.out.println("-------------------------------------------------------------");
+		*/
+		Path transactionsFile2 = Path.of("data", "paysim_with_bad_data.csv");
+		if (!Files.exists(transactionsFile2)) {
+			throw new IllegalStateException("Arquivo de transações não encontrado: " + transactionsFile2.toAbsolutePath());
+		}
+
+		var transactionIngestor2 = new TransactionIngestor();
+		List<Transaction> transactions2 = transactionIngestor2.read2("data/paysim_with_bad_data.csv");
+		System.out.println("Total transacoes: " + transactions2.size());
+
+		transactions2.forEach(System.out::println);
+		
+		System.out.println("-------------------------------------------------------------");
+		
 	}
 
 }
