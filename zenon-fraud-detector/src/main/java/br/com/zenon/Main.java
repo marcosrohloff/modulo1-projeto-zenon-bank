@@ -1,10 +1,12 @@
 package br.com.zenon;
 
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.List;
 
 public class Main {
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 
 		Transaction transaction1 = new Transaction(1, TransactionType.PAYMENT, new BigDecimal("9839.64"),
 				new TransactionCustomer("C1231006815", new BigDecimal("170136.0"), new BigDecimal("160296.36")),
@@ -17,6 +19,15 @@ public class Main {
 
 		System.out.println(transaction1);
 		System.out.println(transaction2);
+		
+		System.out.println("-------------------------------------------------------------");
+		
+		var transactionIngestor = new TransactionIngestor();
+		List<Transaction> transactions = transactionIngestor.read("data/arq.csv");
+		System.out.println("Transactions read: " + transactions.size());
+		
+		transactions.stream().limit(10).forEach(System.out::println);
+		
 	}
 
 }
