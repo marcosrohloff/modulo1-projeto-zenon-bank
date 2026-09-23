@@ -1,12 +1,13 @@
 package br.com.zenon;
 
-import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
 public class Main {
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) {
 
 		Transaction transaction1 = new Transaction(1, TransactionType.PAYMENT, new BigDecimal("9839.64"),
 				new TransactionCustomer("C1231006815", new BigDecimal("170136.0"), new BigDecimal("160296.36")),
@@ -19,15 +20,19 @@ public class Main {
 
 		System.out.println(transaction1);
 		System.out.println(transaction2);
-		
+
 		System.out.println("-------------------------------------------------------------");
-		
+
+		Path transactionsFile = Path.of("data", "arq.csv");
+		if (!Files.exists(transactionsFile)) {
+			throw new IllegalStateException("Arquivo de transações não encontrado: " + transactionsFile.toAbsolutePath());
+		}
+
 		var transactionIngestor = new TransactionIngestor();
-		List<Transaction> transactions = transactionIngestor.read("data/arq.csv");
+		List<Transaction> transactions = transactionIngestor.read(transactionsFile);
 		System.out.println("Transactions read: " + transactions.size());
-		
+
 		transactions.stream().limit(10).forEach(System.out::println);
-		
 	}
 
 }
