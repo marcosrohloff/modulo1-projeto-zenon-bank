@@ -1,6 +1,7 @@
 package br.com.zenon;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 
 public record TransactionCustomer(
 		String name, 
@@ -8,6 +9,11 @@ public record TransactionCustomer(
 		BigDecimal newBalance) {
 	
 	public TransactionCustomer {
+		
+        Objects.requireNonNull(name, "O nome do cliente não pode ser nulo");
+        Objects.requireNonNull(oldBalance, "O saldo anterior não pode ser nulo");
+        Objects.requireNonNull(newBalance, "O novo saldo não pode ser nulo");
+        
 		if (name == null || name.isBlank()) {
 			throw new IllegalArgumentException("O nome do cliente não pode ser nulo ou vazio.");
 		}
