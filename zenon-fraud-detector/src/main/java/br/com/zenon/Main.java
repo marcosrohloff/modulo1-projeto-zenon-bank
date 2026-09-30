@@ -3,7 +3,9 @@ package br.com.zenon;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 public class Main {
 
@@ -47,7 +49,31 @@ public class Main {
 
 		transactions2.forEach(System.out::println);
 		
+		System.out.println("-------------------------------------------------------------");		
+		
+		FraudAnalyzer analyzer = new FraudAnalyzer(transactions2);
+		System.out.println("Total de Fraudes: " + analyzer.countFrauds());
+		
 		System.out.println("-------------------------------------------------------------");
+		List<Transaction> top3Frauds = analyzer.top3FraudsByAmount(3);
+		top3Frauds.stream().map(Transaction::amount).forEach(System.out::println);
+		
+		System.out.println("-------------------------------------------------------------");
+		List<String> suspiciousCustomers = analyzer.top5SuspiciousCustomers();
+		System.out.println("Suspicious Customers: " + suspiciousCustomers);		
+		
+		System.out.println("-------------------------------------------------------------");
+		System.out.println("Prejuízo Total: " + analyzer.totalFraudLoss().setScale(2).toPlainString());
+		
+		System.out.println("-------------------------------------------------------------");
+		System.out.println("Fraudes por Tipo:");
+        analyzer.countFraudsByType()
+                .entrySet()
+                .stream()
+                .sorted(Map.Entry.comparingByKey(Comparator.comparing(Enum::name)))
+                .forEach(entry ->
+                        System.out.println(" - " + entry.getKey() + ": " + entry.getValue())
+                );		
 		
 	}
 

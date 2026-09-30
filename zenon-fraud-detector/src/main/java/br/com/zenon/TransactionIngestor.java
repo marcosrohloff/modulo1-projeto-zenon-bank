@@ -9,6 +9,8 @@ import java.util.Locale;
 import java.util.Optional;
 
 public class TransactionIngestor {
+	
+	public static final int FRAUD_LIMIT = 50_000;
 
 	public List<Transaction> read(String fileName) {
 		return read(Path.of(fileName));
@@ -73,7 +75,7 @@ public class TransactionIngestor {
 			List<String> lines = Files.readAllLines(path);
 			return lines.stream()
 					.skip(1)
-					.limit(1000)
+					.limit(FRAUD_LIMIT)
 					.map(this::parseTransaction2)
 					.filter(Optional::isPresent)
 					.map(Optional::get)
@@ -84,6 +86,7 @@ public class TransactionIngestor {
 	}	
 
 	private Optional<Transaction> parseTransaction2(String line) {
+		
 		try {
 			String[] chunks = line.split(",", -1);
 
@@ -103,9 +106,11 @@ public class TransactionIngestor {
 			boolean isFlaggedFraud = "1".equals(chunks[10]);
 
 			return Optional.of(new Transaction(step, type, amount, origin, recipient, isFraud, isFlaggedFraud));
+			
 		} catch (Exception e) {
 			System.err.println("Erro ao processar a linha: " + line + " - " + e.getMessage());
 			return Optional.empty();
 		}
+		
 	}
 }
