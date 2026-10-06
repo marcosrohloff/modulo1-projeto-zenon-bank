@@ -10,7 +10,7 @@ import java.util.Optional;
 
 public class TransactionIngestor {
 	
-	public static final int FRAUD_LIMIT = 50_000;
+	public static final int FRAUD_LIMIT = 100_000;
 
 	public List<Transaction> read(String fileName) {
 		return read(Path.of(fileName));
