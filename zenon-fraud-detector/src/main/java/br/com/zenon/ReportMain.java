@@ -1,16 +1,46 @@
 package br.com.zenon;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.Currency;
+import java.util.Locale;
+import java.util.ResourceBundle;
+
 import br.com.zenon.TransactionReport.Statistics;
 
 public class ReportMain {
 	
 	public static void main(String[] args) {
-		
-		var transactionReport = new TransactionReport();
+        
+	    String language = (args.length > 0 ? args[0]: "pt");
+	    var locale = Locale.of(language);
+
+	    var integerFormatter = NumberFormat.getIntegerInstance(locale);
+	    var currencyFormatter = DecimalFormat.getCurrencyInstance(locale);
+	    currencyFormatter.setCurrency(Currency.getInstance("USD"));
+
+	    var resourceBundle = ResourceBundle.getBundle("report", locale);
+
+	    var transactionReport = new TransactionReport();
 		Statistics statistics = transactionReport.generateReport("data/arq.csv");
-		System.out.println("Total de linhas: " + statistics.totalTransactions());
-		System.out.println("Total de fraudes: " + statistics.totalFrauds());
-		System.out.println("Valor total transacionado: " + statistics.totalAmount().setScale(2).toPlainString());
+		
+	    String fmtTotalTransactions = integerFormatter.format(statistics.totalTransactions());
+	    String fmtTotalFrauds = integerFormatter.format(statistics.totalFrauds());
+	    String fmtTotalAmount = currencyFormatter.format(statistics.totalAmount());
+
+	    String msgTotalTransactions = resourceBundle.getString("label.total.transactions");
+	    String msgTotalFrauds = resourceBundle.getString("label.total.frauds");
+	    String msgTotalAmount = resourceBundle.getString("label.total.amount");
+	    
+	    System.out.println("""
+	            %s: %s
+	            %s: %s
+	            %s: %s
+	            """.formatted(
+	                msgTotalTransactions, fmtTotalTransactions,
+	                msgTotalFrauds, fmtTotalFrauds,
+	                msgTotalAmount, fmtTotalAmount
+	            ));
 	}
 
 }
