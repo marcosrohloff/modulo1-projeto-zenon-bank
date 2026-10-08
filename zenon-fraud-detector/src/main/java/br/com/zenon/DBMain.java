@@ -24,9 +24,8 @@ public class DBMain {
 		System.out.println("Tempo de inserção - SQL (ms): " + (endTimeSQL - startTimeSQL) / 1_000_000.0);
 
 		var customerName = "C1231006815";
-		repository.findByOriginCustomerName(customerName).map(Object::toString)
-        .orElse("Transacao nao encontrada para: " + customerName);
-
-
+		repository.findByOriginName(customerName)
+		.map(Object::toString)
+		.orElse("Transacao nao encontrada para: " + customerName);
 	}
 }

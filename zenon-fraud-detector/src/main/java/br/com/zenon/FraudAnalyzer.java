@@ -4,52 +4,57 @@ import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class FraudAnalyzer {
 
 	private final List<Transaction> transactions;
 
-    public FraudAnalyzer(List<Transaction> transactions) {
-        this.transactions = transactions;
-    }
+	  public FraudAnalyzer(List<Transaction> transactions) {
+	    Objects.requireNonNull(transactions);
+	    this.transactions = transactions;
+	  }
 
-	public long countFrauds() {
-		return transactions
-				.stream()
-				.filter(Transaction::isFraud).count();
-	}
-	
-    public List<Transaction> top3FraudsByAmount(int limit) {
-        return transactions.stream()
-                .filter(Transaction::isFraud)
-                .sorted(Comparator.comparing(Transaction::amount).reversed())
-                .limit(limit)
-                .toList();
-    }
-    
-    public List<String> top5SuspiciousCustomers() {
-        return transactions.stream()
-                .filter(Transaction::isFraud)
-                .sorted(Comparator.comparing(Transaction::amount).reversed())
-                .map(transaction -> transaction.origin().name())
-                .distinct()
-                .limit(5)
-                .toList();
-    }
+	  public long countFrauds() {
+	    return fraudStream().count();
+	  }
 
-	public BigDecimal totalFraudLoss() {
-		return transactions.stream()
-				.filter(Transaction::isFraud)
-                .map(Transaction::amount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-	}
+	  public List<BigDecimal> findHighestValueFraudAmounts(int limit) {
+	    return highValueFraudStream()
+	        .map(Transaction::amount)
+	        .limit(limit)
+	        .toList();
+	  }
 
-    public Map<TransactionType, Long> countFraudsByType() {
-        return transactions.stream()
-                .filter(Transaction::isFraud)
-                .collect(java.util.stream.Collectors.groupingBy(
-                        Transaction::type,
-                        java.util.stream.Collectors.counting())
-                );
-    } 
+	  public List<String> findTopSuspiciousClients(int limit) {
+	    return highValueFraudStream()
+	        .map(transaction -> transaction.origin().name())
+	        .distinct()
+	        .limit(limit)
+	        .toList();
+	  }
+
+	  public BigDecimal calculateTotalFraudLoss() {
+	    return fraudStream()
+	        .map(Transaction::amount)
+	        .reduce(BigDecimal.ZERO, BigDecimal::add);
+	  }
+
+	  public Map<TransactionType, Long> countFraudsByType() {
+	    return fraudStream()
+	        .collect(Collectors.groupingBy(Transaction::type, Collectors.counting()));
+	  }
+
+	  private Stream<Transaction> fraudStream() {
+	    return transactions
+	        .stream()
+	        .filter(Transaction::isFraud);
+	  }
+
+	  private Stream<Transaction> highValueFraudStream() {
+	    return fraudStream()
+	        .sorted(Comparator.comparing(Transaction::amount).reversed());
+	  }
 }
